@@ -13,6 +13,9 @@ namespace AIToolkit.Windows
         private string _styleHint = "flat design, mobile game, transparent background";
         private ImageResolution _resolution = ImageResolution._1024x1024;
 
+        // --- Reference image ---
+        private Texture2D _referenceImage;
+
         // --- Output fields ---
         private string _outputFolder = "Assets/AIGenerated";
         private string _fileName     = "generated_image";
@@ -25,8 +28,8 @@ namespace AIToolkit.Windows
         private MessageType _statusType = MessageType.Info;
         private Vector2   _scroll;
 
-        [MenuItem("Tools/AI Toolkit/AI Art Pipeline")]
-        public static void Open() => GetWindow<AIArtPipelineWindow>("AI Art Pipeline");
+        [MenuItem("Tools/AI Toolkit/Art Generator")]
+        public static void Open() => GetWindow<AIArtPipelineWindow>("Art Generator");
 
         private void OnGUI()
         {
@@ -53,7 +56,7 @@ namespace AIToolkit.Windows
 
         private void DrawHeader()
         {
-            GUILayout.Label("AI Art Pipeline", new GUIStyle(EditorStyles.boldLabel) { fontSize = 15 });
+            GUILayout.Label("Art Generator", new GUIStyle(EditorStyles.boldLabel) { fontSize = 15 });
             GUILayout.Label("Generate image assets without leaving Unity.", EditorStyles.miniLabel);
         }
 
@@ -76,6 +79,8 @@ namespace AIToolkit.Windows
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Label("Options", EditorStyles.boldLabel);
 
+            DrawReferenceImageField();
+
             _resolution = (ImageResolution)EditorGUILayout.EnumPopup("Resolution", _resolution);
 
             EditorGUILayout.BeginHorizontal();
@@ -90,6 +95,24 @@ namespace AIToolkit.Windows
 
             _fileName = EditorGUILayout.TextField("File Name", _fileName);
             EditorGUILayout.EndVertical();
+        }
+
+        // ── Reference image field ─────────────────────────────────────────────
+
+        private void DrawReferenceImageField()
+        {
+            _referenceImage = (Texture2D)EditorGUILayout.ObjectField(
+                "Reference Image (optional)", _referenceImage, typeof(Texture2D), false);
+
+            if (_referenceImage != null)
+            {
+                // Small inline preview (~80x80 px)
+                const float previewSize = 80f;
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.Space(EditorGUIUtility.labelWidth);
+                GUILayout.Label(_referenceImage, GUILayout.Width(previewSize), GUILayout.Height(previewSize));
+                EditorGUILayout.EndHorizontal();
+            }
         }
 
         // ── Generate ──────────────────────────────────────────────────────────
@@ -123,8 +146,11 @@ namespace AIToolkit.Windows
 
             try
             {
+                // Read reference image bytes before entering the async call so we stay on the main thread
+                byte[] refBytes = _referenceImage != null ? TextureToReadableCopy(_referenceImage) : null;
+
                 var service = ServiceFactory.GetImageService(imgSvc, apiKey, SettingsPanel.SelectedImageModelString);
-                byte[] bytes = await service.GenerateImageAsync(_prompt, _styleHint, _resolution);
+                byte[] bytes = await service.GenerateImageAsync(_prompt, _styleHint, _resolution, refBytes);
 
                 _pendingBytes = bytes;
                 _preview      = new Texture2D(2, 2);
@@ -190,6 +216,28 @@ namespace AIToolkit.Windows
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        // Creates a CPU-readable copy of any Texture2D via a temporary RenderTexture blit,
+        // bypassing the isReadable restriction that many imported textures have.
+        private static byte[] TextureToReadableCopy(Texture2D source)
+        {
+            RenderTexture rt  = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.ARGB32);
+            RenderTexture prev = RenderTexture.active;
+
+            Graphics.Blit(source, rt);
+            RenderTexture.active = rt;
+
+            Texture2D readable = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
+            readable.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+            readable.Apply();
+
+            RenderTexture.active = prev;
+            RenderTexture.ReleaseTemporary(rt);
+
+            byte[] png = readable.EncodeToPNG();
+            UnityEngine.Object.DestroyImmediate(readable);
+            return png;
+        }
 
         private void DrawStatus()
         {

@@ -8,7 +8,7 @@ Built as a working proof-of-concept for AI-assisted game production pipelines.
 
 ## Tools
 
-### AI Script Reviewer
+### Code Generator
 Chat-based code review panel embedded in the Unity Editor. Attach any C# script and get instant AI feedback tuned to game development concerns.
 
 **Review modes:**
@@ -19,7 +19,7 @@ Chat-based code review panel embedded in the Unity Editor. Attach any C# script 
 
 **Free-form chat** mode for general AI questions without attaching a script.
 
-### AI Art Pipeline
+### Art Generator
 Prompt-to-asset image generation inside the Unity Editor. Generate concept art or placeholder assets, preview them, and auto-import directly into your project's asset library.
 
 **Supports:** text prompts, style hints, resolution selection (512×512, 1024×1024), configurable output folder.
@@ -74,7 +74,7 @@ Assets/Editor/AIToolkit/
 
 1. Clone this repo into your Unity project's `Assets/` folder, or copy the `Assets/Editor/AIToolkit/` directory
 2. Open Unity (2022.3 LTS or later)
-3. Go to `Tools > AI Toolkit > AI Script Reviewer` or `Tools > AI Toolkit > AI Art Pipeline`
+3. Go to `Tools > AI Toolkit > Code Generator` or `Tools > AI Toolkit > Art Generator`
 4. Enter your API keys in the Settings panel for whichever providers you want to use
 5. For Ollama: install [Ollama](https://ollama.ai) locally and pull a model (`ollama pull llama3`) — no API key needed
 

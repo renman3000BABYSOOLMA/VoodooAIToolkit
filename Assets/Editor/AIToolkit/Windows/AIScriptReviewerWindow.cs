@@ -34,8 +34,8 @@ namespace AIToolkit.Windows
         private MessageType _statusType = MessageType.Info;
         private Vector2     _resultScroll;
 
-        [MenuItem("Tools/AI Toolkit/AI Script Reviewer")]
-        public static void Open() => GetWindow<AIScriptReviewerWindow>("AI Script Reviewer");
+        [MenuItem("Tools/AI Toolkit/Code Generator")]
+        public static void Open() => GetWindow<AIScriptReviewerWindow>("Code Generator");
 
         private void OnEnable()  => SettingsPanel.OnStatusMessage += OnSettingsStatus;
         private void OnDisable() => SettingsPanel.OnStatusMessage -= OnSettingsStatus;
@@ -63,7 +63,7 @@ namespace AIToolkit.Windows
 
         private void DrawHeader()
         {
-            GUILayout.Label("AI Script Reviewer", new GUIStyle(EditorStyles.boldLabel) { fontSize = 15 });
+            GUILayout.Label("Code Generator", new GUIStyle(EditorStyles.boldLabel) { fontSize = 15 });
             GUILayout.Label("Ask anything — optionally attach a script for code review.", EditorStyles.miniLabel);
         }
 

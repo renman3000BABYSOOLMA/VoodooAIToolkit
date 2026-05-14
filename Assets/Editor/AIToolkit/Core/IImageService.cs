@@ -20,6 +20,6 @@ namespace AIToolkit.Core
 
     public interface IImageService
     {
-        Task<byte[]> GenerateImageAsync(string prompt, string styleHint, ImageResolution resolution);
+        Task<byte[]> GenerateImageAsync(string prompt, string styleHint, ImageResolution resolution, byte[] referenceImageBytes = null);
     }
 }
